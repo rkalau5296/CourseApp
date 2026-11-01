@@ -20,6 +20,8 @@
 		</ComboBox>
 
 		<DockPanel Grid.Row="2" Grid.Column="0">
+			<Button DockPanel.Dock="Bottom" Content="Importuj folder do zaznaczonego węzła…"
+                    Click="ImportButton_Click" Margin="0,8,0,0" HorizontalAlignment="Stretch"/>
 			<TextBlock DockPanel.Dock="Top" Text="Podkursy / moduły:" FontWeight="Bold" Margin="0,0,0,5"/>
 			<TreeView ItemsSource="{Binding CourseChildren}"
                       SelectedItem="{Binding SelectedNode}">
@@ -33,9 +35,11 @@
 
 		<DockPanel Grid.Row="2" Grid.Column="1">
 			<TextBlock DockPanel.Dock="Top" Text="Zawartość (filmy / audio / PDF):" FontWeight="Bold" Margin="0,0,0,5"/>
+			<TextBlock DockPanel.Dock="Bottom" Text="{Binding StatusMessage}" Foreground="Green" TextWrapping="Wrap"/>
 			<TextBlock DockPanel.Dock="Bottom" Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap"/>
 			<ListBox ItemsSource="{Binding CurrentItems}"
-                     SelectedItem="{Binding SelectedItem}">
+                     SelectedItem="{Binding SelectedItem}"
+                     DoubleTapped="ItemsList_DoubleTapped">
 				<ListBox.ItemTemplate>
 					<DataTemplate x:DataType="m:CourseItem">
 						<TextBlock Text="{Binding Display}"/>

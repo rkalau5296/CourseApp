@@ -1,6 +1,7 @@
 ﻿using CourseApp.Data;
 using CourseApp.Persistence;
 using CourseApp.Repository;
+using CourseApp.Services;
 using CourseApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +15,10 @@ public static class ServicesConfiguration
     {
         services.AddTransient<MainViewModel>();
         services.AddScoped<ICourseRepository, CourseRepository>();
+
+        services.AddSingleton<IMediaImportService>(sp => new MediaImportService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            configuration["MediaRoot"] ?? string.Empty));
 
         services.AddDbContextFactory<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));

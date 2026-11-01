@@ -2,8 +2,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CourseApp.Models;
 using CourseApp.Repository;
+using CourseApp.Services;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CourseApp.ViewModels;
@@ -11,6 +15,7 @@ namespace CourseApp.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly ICourseRepository _courseRepository;
+    private readonly IMediaImportService _importService;
 
     [ObservableProperty]
     private CourseNode? _selectedCourse;
@@ -31,9 +36,80 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<CourseItem> CurrentItems { get; } = new();
 
-    public MainViewModel(ICourseRepository courseRepository)
+    public MainViewModel(ICourseRepository courseRepository, IMediaImportService importService)
     {
         _courseRepository = courseRepository;
+        _importService = importService;
+    }
+
+    [ObservableProperty]
+    private string? _statusMessage;
+
+    // Importuje folder do zaznaczonego węzła (lub do kursu, gdy nic nie zaznaczono).
+    public async Task ImportFolderAsync(string folderPath)
+    {
+        var target = SelectedNode ?? SelectedCourse;
+        if (target is null)
+        {
+            ErrorMessage = "Najpierw wybierz kurs lub węzeł, do którego chcesz zaimportować pliki.";
+            return;
+        }
+
+        try
+        {
+            ErrorMessage = null;
+            var result = await _importService.ImportFolderAsync(target.CourseNodeId, folderPath);
+            StatusMessage = $"Import do \"{target.Title}\": +{result.ItemsAdded} plików, +{result.NodesAdded} węzłów, pominięto {result.ItemsSkipped}.";
+            await ReloadTreeAsync(target.CourseNodeId);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Import nie powiódł się: {ex.Message}";
+        }
+    }
+
+    // Otwiera zaznaczony plik w domyślnym programie systemu (odtwarzacz, przeglądarka PDF).
+    public void OpenSelectedItem()
+    {
+        if (SelectedItem is null) return;
+
+        if (string.IsNullOrEmpty(SelectedItem.FilePath))
+        {
+            ErrorMessage = $"\"{SelectedItem.Title}\" nie ma przypisanego pliku.";
+            return;
+        }
+
+        var path = _importService.ResolvePath(SelectedItem.FilePath);
+        if (!File.Exists(path))
+        {
+            ErrorMessage = $"Nie znaleziono pliku: {path}";
+            return;
+        }
+
+        try
+        {
+            ErrorMessage = null;
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Nie udało się otworzyć pliku: {ex.Message}";
+        }
+    }
+
+    private async Task ReloadTreeAsync(int reselectNodeId)
+    {
+        if (SelectedCourse is null) return;
+        var tree = await _courseRepository.GetCourseTreeAsync(SelectedCourse.CourseNodeId);
+        if (tree is null) return;
+
+        CourseChildren.Clear();
+        foreach (var child in tree.Children) CourseChildren.Add(child);
+
+        SelectedNode = Find(tree, reselectNodeId);
+
+        static CourseNode? Find(CourseNode node, int id) =>
+            node.CourseNodeId == id ? node : node.Children.Select(c => Find(c, id)).FirstOrDefault(n => n is not null);
     }
 
     [RelayCommand]
