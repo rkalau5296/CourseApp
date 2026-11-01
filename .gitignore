@@ -1,0 +1,26 @@
+## .NET / Visual Studio / Rider
+/[Bb]in/
+/[Oo]bj/
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Backup / Temp files
+*.bak
+*.cache
+*~
+.DS_Store
+Thumbs.db
+
+## Publish directory
+/[Pp]ublish/
+/[Rr]elease/
+
+## Entity Framework Core Local Database files (opcjonalnie, ale zalecane)
+*.mdf
+*.ldf
+*.sqlite
+*.db

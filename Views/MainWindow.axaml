@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CourseApp.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CourseApp.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="CourseApp - Zarządzanie Kursami"
+        Width="900" Height="600">
+
+	<Grid RowDefinitions="Auto, *" Margin="20">
+		
+		<StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,20">
+			<TextBlock Text="Wybierz sekcję:" VerticalAlignment="Center" FontWeight="Bold"/>
+
+			<ComboBox SelectedItem="{Binding SelectedSection}" Width="180">
+				<ComboBoxItem>IWS</ComboBoxItem>
+				<ComboBoxItem>Alchemia Mocy</ComboBoxItem>
+				<ComboBoxItem>English</ComboBoxItem>
+			</ComboBox>
+
+			<Button Content="Załaduj kursy" Command="{Binding LoadCoursesCommand}" />
+		</StackPanel>
+		
+		<ListBox Grid.Row="1" ItemsSource="{Binding Courses}">
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<StackPanel Spacing="5" Margin="5">
+						<TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Bold" Foreground="Navy"/>
+						<TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+						<TextBlock Text="{Binding Section, StringFormat='Sekcja: {0}'}" FontSize="11" FontStyle="Italic" Foreground="Gray"/>
+					</StackPanel>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+
+	</Grid>
+</Window>
