@@ -1,39 +1,47 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CourseApp.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:m="using:CourseApp.Models"
         x:Class="CourseApp.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="CourseApp - Zarządzanie Kursami"
+        Title="Zarządzanie Kursami"
         Width="900" Height="600">
-
-	<Grid RowDefinitions="Auto, *" Margin="20">
-		
-		<StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,20">
-			<TextBlock Text="Wybierz sekcję:" VerticalAlignment="Center" FontWeight="Bold"/>
-
-			<ComboBox SelectedItem="{Binding SelectedSection}" Width="180">
-				<ComboBoxItem>IWS</ComboBoxItem>
-				<ComboBoxItem>Alchemia Mocy</ComboBoxItem>
-				<ComboBoxItem>English</ComboBoxItem>
-			</ComboBox>
-
-			<Button Content="Załaduj kursy" Command="{Binding LoadCoursesCommand}" />
-		</StackPanel>
-		
-		<ListBox Grid.Row="1" ItemsSource="{Binding Courses}">
-			<ListBox.ItemTemplate>
-				<DataTemplate>
-					<StackPanel Spacing="5" Margin="5">
-						<TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Bold" Foreground="Navy"/>
-						<TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
-						<TextBlock Text="{Binding Section, StringFormat='Sekcja: {0}'}" FontSize="11" FontStyle="Italic" Foreground="Gray"/>
-					</StackPanel>
+	<Grid Margin="20" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="20">
+		<TextBlock Grid.ColumnSpan="2" Text="Wybierz kurs:" FontWeight="Bold"/>
+		<ComboBox Grid.Row="1" Grid.ColumnSpan="2"
+                  ItemsSource="{Binding Courses}"
+                  SelectedItem="{Binding SelectedCourse}"
+                  HorizontalAlignment="Stretch">
+			<ComboBox.ItemTemplate>
+				<DataTemplate x:DataType="m:CourseNode">
+					<TextBlock Text="{Binding Title}"/>
 				</DataTemplate>
-			</ListBox.ItemTemplate>
-		</ListBox>
+			</ComboBox.ItemTemplate>
+		</ComboBox>
 
+		<DockPanel Grid.Row="2" Grid.Column="0">
+			<TextBlock DockPanel.Dock="Top" Text="Podkursy / moduły:" FontWeight="Bold" Margin="0,0,0,5"/>
+			<TreeView ItemsSource="{Binding CourseChildren}"
+                      SelectedItem="{Binding SelectedNode}">
+				<TreeView.ItemTemplate>
+					<TreeDataTemplate x:DataType="m:CourseNode" ItemsSource="{Binding Children}">
+						<TextBlock Text="{Binding Title}"/>
+					</TreeDataTemplate>
+				</TreeView.ItemTemplate>
+			</TreeView>
+		</DockPanel>
+
+		<DockPanel Grid.Row="2" Grid.Column="1">
+			<TextBlock DockPanel.Dock="Top" Text="Zawartość (filmy / audio / PDF):" FontWeight="Bold" Margin="0,0,0,5"/>
+			<TextBlock DockPanel.Dock="Bottom" Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap"/>
+			<ListBox ItemsSource="{Binding CurrentItems}"
+                     SelectedItem="{Binding SelectedItem}">
+				<ListBox.ItemTemplate>
+					<DataTemplate x:DataType="m:CourseItem">
+						<TextBlock Text="{Binding Display}"/>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</DockPanel>
 	</Grid>
 </Window>

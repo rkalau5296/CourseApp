@@ -1,39 +1,46 @@
-﻿using CourseApp.Models;
+using CourseApp.Models;
 using CourseApp.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CourseApp.Repository;
 
 public class CourseRepository : ICourseRepository
 {
-    private readonly AppDbContext _context;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public CourseRepository(AppDbContext context)
+    public CourseRepository(IDbContextFactory<AppDbContext> factory)
     {
-        _context = context;
+        _factory = factory;
     }
 
-    public async Task<IEnumerable<Course>> GetCoursesBySectionAsync(string section)
+    public async Task<IReadOnlyList<CourseNode>> GetRootCoursesAsync()
     {
-        return await _context.Courses
-            .Where(c => c.Section == section)
-            .Include(c => c.Modules)
+        await using var context = await _factory.CreateDbContextAsync();
+        return await context.CourseNodes
             .AsNoTracking()
+            .Where(n => n.ParentId == null)
+            .OrderBy(n => n.SortOrder)
             .ToListAsync();
     }
 
-    public async Task AddCourseAsync(Course course)
+    public async Task<CourseNode?> GetCourseTreeAsync(int courseNodeId)
     {
-        await _context.Courses.AddAsync(course);
-    }
+        await using var context = await _factory.CreateDbContextAsync();
 
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
+        // Całe drzewo jest małe, więc ładujemy je jednym zapytaniem; EF sam połączy Parent/Children.
+        var nodes = await context.CourseNodes
+            .Include(n => n.Items)
+            .ToListAsync();
+
+        foreach (var node in nodes)
+        {
+            node.Children = node.Children.OrderBy(c => c.SortOrder).ToList();
+            node.Items = node.Items.OrderBy(i => i.SortOrder).ToList();
+        }
+
+        return nodes.FirstOrDefault(n => n.CourseNodeId == courseNodeId);
     }
 }

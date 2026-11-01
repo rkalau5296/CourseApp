@@ -21,75 +21,99 @@ namespace CourseApp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CourseApp.Models.Course", b =>
+            modelBuilder.Entity("CourseApp.Models.CourseItem", b =>
                 {
-                    b.Property<int>("CourseId")
+                    b.Property<int>("CourseItemId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseItemId"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CourseNodeId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Section")
+                    b.Property<string>("FilePath")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("CourseId");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.ToTable("Courses");
+                    b.HasKey("CourseItemId");
+
+                    b.HasIndex("CourseNodeId");
+
+                    b.ToTable("CourseItems");
                 });
 
-            modelBuilder.Entity("CourseApp.Models.CourseModule", b =>
+            modelBuilder.Entity("CourseApp.Models.CourseNode", b =>
                 {
-                    b.Property<int>("ModuleId")
+                    b.Property<int>("CourseNodeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ModuleId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseNodeId"));
 
-                    b.Property<int>("CourseId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SnapshotDescription")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("ModuleId");
+                    b.HasKey("CourseNodeId");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("ParentId");
 
-                    b.ToTable("CourseModules");
+                    b.ToTable("CourseNodes");
                 });
 
-            modelBuilder.Entity("CourseApp.Models.CourseModule", b =>
+            modelBuilder.Entity("CourseApp.Models.CourseItem", b =>
                 {
-                    b.HasOne("CourseApp.Models.Course", "Course")
-                        .WithMany("Modules")
-                        .HasForeignKey("CourseId")
+                    b.HasOne("CourseApp.Models.CourseNode", "CourseNode")
+                        .WithMany("Items")
+                        .HasForeignKey("CourseNodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Course");
+                    b.Navigation("CourseNode");
                 });
 
-            modelBuilder.Entity("CourseApp.Models.Course", b =>
+            modelBuilder.Entity("CourseApp.Models.CourseNode", b =>
                 {
-                    b.Navigation("Modules");
+                    b.HasOne("CourseApp.Models.CourseNode", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("CourseApp.Models.CourseNode", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

@@ -15,7 +15,7 @@ public static class ServicesConfiguration
         services.AddTransient<MainViewModel>();
         services.AddScoped<ICourseRepository, CourseRepository>();
 
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContextFactory<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
     }
 }

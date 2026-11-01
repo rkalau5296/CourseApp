@@ -1,12 +1,12 @@
-﻿using CourseApp.Models;
+using CourseApp.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CourseApp.Persistence;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<Course> Courses => Set<Course>();
-    public DbSet<CourseModule> CourseModules => Set<CourseModule>();
+    public DbSet<CourseNode> CourseNodes => Set<CourseNode>();
+    public DbSet<CourseItem> CourseItems => Set<CourseItem>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -16,22 +16,28 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Course>(entity =>
+        modelBuilder.Entity<CourseNode>(entity =>
         {
-            entity.HasKey(c => c.CourseId);
-            entity.Property(c => c.Title).IsRequired().HasMaxLength(200);
-            entity.Property(c => c.Section).IsRequired().HasMaxLength(100);
+            entity.HasKey(n => n.CourseNodeId);
+            entity.Property(n => n.Title).IsRequired().HasMaxLength(200);
+            entity.Property(n => n.Description).HasMaxLength(1000);
+
+            entity.HasOne(n => n.Parent)
+                  .WithMany(n => n.Children)
+                  .HasForeignKey(n => n.ParentId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<CourseModule>(entity =>
+        modelBuilder.Entity<CourseItem>(entity =>
         {
-            entity.HasKey(m => m.ModuleId);
-            entity.Property(m => m.Title).IsRequired().HasMaxLength(200);
-            entity.Property(m => m.SnapshotDescription).HasMaxLength(1000);
+            entity.HasKey(i => i.CourseItemId);
+            entity.Property(i => i.Title).IsRequired().HasMaxLength(200);
+            entity.Property(i => i.FilePath).HasMaxLength(500);
+            entity.Property(i => i.Type).HasConversion<string>().HasMaxLength(20);
 
-            entity.HasOne(m => m.Course)
-                  .WithMany(c => c.Modules)
-                  .HasForeignKey(m => m.CourseId)
+            entity.HasOne(i => i.CourseNode)
+                  .WithMany(n => n.Items)
+                  .HasForeignKey(i => i.CourseNodeId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }
